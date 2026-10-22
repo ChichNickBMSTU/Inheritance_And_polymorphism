@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstdlib>
+using namespace std;
 
 class Massiv_chisel {
 protected:
@@ -8,11 +8,21 @@ protected:
 
 public:
 	Massiv_chisel(int n = 0) : dim(n) {
-		ptr = (dim > 0) ? new double[dim]() : nullptr;
+		if (dim > 0) {
+			ptr = new double[dim]();
+		}
+		else {
+			ptr = nullptr;
+		}
 	}
 
 	Massiv_chisel(const Massiv_chisel& src) : dim(src.dim) {
-		ptr = (dim > 0) ? new double[dim] : nullptr;
+		if (dim > 0) {
+			ptr = new double[dim];
+		}
+		else {
+			ptr = nullptr;
+		}
 		for (int i = 0; i < dim; i++) {
 			ptr[i] = src.ptr[i];
 		}
@@ -26,7 +36,12 @@ public:
 		if (this == &src) return *this;
 		delete[] ptr;
 		dim = src.dim;
-		ptr = (dim > 0) ? new double[dim] : nullptr;
+		if (dim > 0) {
+			ptr = new double[dim];
+		}
+		else {
+			ptr = nullptr;
+		}
 		for (int i = 0; i < dim; i++) {
 			ptr[i] = src.ptr[i];
 		}
@@ -36,24 +51,26 @@ public:
 	int size() const { return dim; }
 
 	double& operator[](int index) {
+		static double dummy = 0.0;
 		if (index < 0 || index >= dim) {
-			std::cerr << "Îøèáêà: èíäåêñ " << index
-				<< " âíå ãðàíèö [0, " << (dim - 1) << "]\n";
-			exit(1);
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑ " << index
+				<< " Ð²Ð½Ðµ Ð³Ñ€Ð°Ð½Ð¸Ñ† [0, " << (dim - 1) << "]\n";
+			return dummy;
 		}
 		return ptr[index];
 	}
 
 	const double& operator[](int index) const {
+		static double dummy = 0.0;
 		if (index < 0 || index >= dim) {
-			std::cerr << "Îøèáêà: èíäåêñ " << index
-				<< " âíå ãðàíèö [0, " << (dim - 1) << "]\n";
-			exit(1);
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑ " << index
+				<< " Ð²Ð½Ðµ Ð³Ñ€Ð°Ð½Ð¸Ñ† [0, " << (dim - 1) << "]\n";
+			return dummy;
 		}
 		return ptr[index];
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Massiv_chisel& arr) {
+	friend ostream& operator<<(ostream& os, const Massiv_chisel& arr) {
 		os << "[";
 		for (int i = 0; i < arr.dim; i++) {
 			os << arr.ptr[i];
@@ -64,92 +81,69 @@ public:
 	}
 };
 
-class Polynomial {
-private:
-	static const int ORDER = 5;
-	double coeff[ORDER];
-
+class Polynomial : public Massiv_chisel
+{
 public:
-	Polynomial() {
-		for (int i = 0; i < ORDER; i++) coeff[i] = 0.0;
+	Polynomial() : Massiv_chisel(5) {
+		ptr[0] = 0.0;
 	}
 
-	Polynomial(double a1, double a2, double a3, double a4) {
-		coeff[0] = 0.0;
-		coeff[1] = a1;
-		coeff[2] = a2;
-		coeff[3] = a3;
-		coeff[4] = a4;
+	Polynomial(double a1, double a2, double a3, double a4) : Massiv_chisel(5) {
+		ptr[0] = 0.0;
+		ptr[1] = a1;
+		ptr[2] = a2;
+		ptr[3] = a3;
+		ptr[4] = a4;
 	}
 
-	Polynomial(const Polynomial& src) {
-		for (int i = 0; i < ORDER; i++) coeff[i] = src.coeff[i];
-	}
+	Polynomial(const Polynomial& src) : Massiv_chisel(src) {}
 
 	Polynomial& operator=(const Polynomial& src) {
 		if (this == &src) return *this;
-		for (int i = 0; i < ORDER; i++) coeff[i] = src.coeff[i];
+		Massiv_chisel::operator=(src);
 		return *this;
 	}
 
 	~Polynomial() {}
 
-	double& operator[](int index) {
-		if (index < 0 || index >= ORDER) {
-			std::cerr << "Îøèáêà: èíäåêñ " << index
-				<< " âíå ãðàíèö [0, " << (ORDER - 1) << "]\n";
-			exit(1);
-		}
-		return coeff[index];
-	}
-
-	const double& operator[](int index) const {
-		if (index < 0 || index >= ORDER) {
-			std::cerr << "Îøèáêà: èíäåêñ " << index
-				<< " âíå ãðàíèö [0, " << (ORDER - 1) << "]\n";
-			exit(1);
-		}
-		return coeff[index];
-	}
-
 	double evaluate(double x) const {
 		double result = 0.0;
 		double power = 1.0;
-		for (int i = 0; i < ORDER; i++) {
-			result += coeff[i] * power;
+		for (int i = 0; i < dim; i++) {
+			result += ptr[i] * power;
 			power *= x;
 		}
 		return result;
 	}
 
 	Polynomial& operator+=(const Polynomial& other) {
-		for (int i = 0; i < ORDER; i++) {
-			coeff[i] += other.coeff[i];
+		for (int i = 0; i < dim; i++) {
+			ptr[i] += other.ptr[i];
 		}
 		return *this;
 	}
 
 	Polynomial& operator-=(const Polynomial& other) {
-		for (int i = 0; i < ORDER; i++) {
-			coeff[i] -= other.coeff[i];
+		for (int i = 0; i < dim; i++) {
+			ptr[i] -= other.ptr[i];
 		}
 		return *this;
 	}
 
 	Polynomial& operator*=(double scalar) {
-		for (int i = 0; i < ORDER; i++) {
-			coeff[i] *= scalar;
+		for (int i = 0; i < dim; i++) {
+			ptr[i] *= scalar;
 		}
 		return *this;
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
+	friend ostream& operator<<(ostream& os, const Polynomial& p) {
 		bool first = true;
-		for (int i = ORDER - 1; i >= 0; i--) {
-			if (p.coeff[i] == 0.0) continue;
+		for (int i = p.dim - 1; i >= 0; i--) {
+			if (p.ptr[i] == 0.0) continue;
 
 			if (!first) {
-				if (p.coeff[i] > 0) {
+				if (p.ptr[i] > 0) {
 					os << " + ";
 				}
 				else {
@@ -157,17 +151,17 @@ public:
 				}
 			}
 			else {
-				if (p.coeff[i] < 0) {
+				if (p.ptr[i] < 0) {
 					os << "-";
 				}
 			}
 
 			double absVal;
-			if (p.coeff[i] < 0) {
-				absVal = -p.coeff[i];
+			if (p.ptr[i] < 0) {
+				absVal = -p.ptr[i];
 			}
 			else {
-				absVal = p.coeff[i];
+				absVal = p.ptr[i];
 			}
 
 			if (i == 0) {
@@ -186,6 +180,7 @@ public:
 		return os;
 	}
 };
+
 
 class Massiv_Polynomov : public Massiv_chisel {
 private:
@@ -215,7 +210,12 @@ public:
 		if (this == &src) return *this;
 		delete[] polyPtr;
 		dim = src.dim;
-		polyPtr = (dim > 0) ? new Polynomial[dim] : nullptr;
+		if (dim > 0) {
+			polyPtr = new Polynomial[dim];
+		}
+		else {
+			polyPtr = nullptr;
+		}
 		for (int i = 0; i < dim; i++) {
 			polyPtr[i] = src.polyPtr[i];
 		}
@@ -223,24 +223,26 @@ public:
 	}
 
 	Polynomial& operator[](int index) {
+		static Polynomial dummy; // Ð·Ð°Ð³Ð»ÑƒÑˆÐºÐ° Ð½Ð° ÑÐ»ÑƒÑ‡Ð°Ð¹ Ð¾ÑˆÐ¸Ð±ÐºÐ¸
 		if (index < 0 || index >= dim) {
-			std::cerr << "Îøèáêà: èíäåêñ " << index
-				<< " âíå ãðàíèö [0, " << (dim - 1) << "]\n";
-			exit(1);
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑ " << index
+				<< " Ð²Ð½Ðµ Ð³Ñ€Ð°Ð½Ð¸Ñ† [0, " << (dim - 1) << "]\n";
+			return dummy;
 		}
 		return polyPtr[index];
 	}
 
 	const Polynomial& operator[](int index) const {
+		static Polynomial dummy; // Ð·Ð°Ð³Ð»ÑƒÑˆÐºÐ° Ð½Ð° ÑÐ»ÑƒÑ‡Ð°Ð¹ Ð¾ÑˆÐ¸Ð±ÐºÐ¸
 		if (index < 0 || index >= dim) {
-			std::cerr << "Îøèáêà: èíäåêñ " << index
-				<< " âíå ãðàíèö [0, " << (dim - 1) << "]\n";
-			exit(1);
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑ " << index
+				<< " Ð²Ð½Ðµ Ð³Ñ€Ð°Ð½Ð¸Ñ† [0, " << (dim - 1) << "]\n";
+			return dummy;
 		}
 		return polyPtr[index];
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Massiv_Polynomov& arr) {
+	friend ostream& operator<<(ostream& os, const Massiv_Polynomov& arr) {
 		os << "Massiv_Polynomov [" << arr.dim << "]:\n";
 		for (int i = 0; i < arr.dim; i++) {
 			os << "  [" << i << "] " << arr.polyPtr[i] << "\n";
@@ -254,90 +256,90 @@ int main() {
 
 	int n;
 	do {
-		std::cout << "Ââîä ìàññèâà ïîëèíîìîâ 4 ñòåïåíè (P(0)=0)\n";
-		std::cout << "Ââåäèòå êîëè÷åñòâî ïîëèíîìîâ â ìàññèâå (ïîëîæèòåëüíîå ÷èñëî): ";
-		std::cin >> n;
+		cout << "Ð’Ð²Ð¾Ð´ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð² 4 ÑÑ‚ÐµÐ¿ÐµÐ½Ð¸ (P(0)=0)\n";
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð² Ð² Ð¼Ð°ÑÑÐ¸Ð²Ðµ (Ñ‡Ð¸ÑÐ»Ð¾ Ð±Ð¾Ð»ÑŒÑˆÐµ Ð½ÑƒÐ»Ñ): ";
+		cin >> n;
 		if (n <= 0) {
-			std::cerr << "Îøèáêà: ðàçìåðíîñòü äîëæíà áûòü ïîëîæèòåëüíîé! Ïîâòîðèòå ââîä.\n\n";
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ñ€Ð°Ð·Ð¼ÐµÑ€Ð½Ð¾ÑÑ‚ÑŒ Ð´Ð¾Ð»Ð¶Ð½Ð° Ð±Ñ‹Ñ‚ÑŒ Ð±Ð¾Ð»ÑŒÑˆÐµ Ð½ÑƒÐ»Ñ! ÐŸÐ¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚Ðµ Ð²Ð²Ð¾Ð´.\n\n";
 		}
 	} while (n <= 0);
 
 	Massiv_Polynomov arr(n);
 
 	for (int i = 0; i < n; i++) {
-		std::cout << "\nÏîëèíîì #" << i << ":\n";
+		cout << "\nÐŸÐ¾Ð»Ð¸Ð½Ð¾Ð¼ #" << i << ":\n";
 		double a1, a2, a3, a4;
-		std::cout << "  Ââåäèòå êîýôôèöèåíò ïðè x^1 (a1): ";
-		std::cin >> a1;
-		std::cout << "  Ââåäèòå êîýôôèöèåíò ïðè x^2 (a2): ";
-		std::cin >> a2;
-		std::cout << "  Ââåäèòå êîýôôèöèåíò ïðè x^3 (a3): ";
-		std::cin >> a3;
-		std::cout << "  Ââåäèòå êîýôôèöèåíò ïðè x^4 (a4): ";
-		std::cin >> a4;
+		cout << "  Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ Ð¿Ñ€Ð¸ x^1 (a1): ";
+		cin >> a1;
+		cout << "  Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ Ð¿Ñ€Ð¸ x^2 (a2): ";
+		cin >> a2;
+		cout << "  Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ Ð¿Ñ€Ð¸ x^3 (a3): ";
+		cin >> a3;
+		cout << "  Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ Ð¿Ñ€Ð¸ x^4 (a4): ";
+		cin >> a4;
 
 		arr[i] = Polynomial(a1, a2, a3, a4);
-		std::cout << "  -> P" << i << "(x) = " << arr[i] << "\n";
-		std::cout << "  -> P" << i << "(0) = " << arr[i].evaluate(0)
-			<< " (äîëæíî áûòü 0)\n";
+		cout << "  -> P" << i << "(x) = " << arr[i] << "\n";
+		cout << "  -> P" << i << "(0) = " << arr[i].evaluate(0)
+			<< " (Ð´Ð¾Ð»Ð¶Ð½Ð¾ Ð±Ñ‹Ñ‚ÑŒ 0)\n";
 	}
 
-	std::cout << "\nÂâåäåííûé ìàññèâ:\n";
-	std::cout << arr << "\n";
+	cout << "\nÐ’Ð²ÐµÐ´ÐµÐ½Ð½Ñ‹Ð¹ Ð¼Ð°ÑÑÐ¸Ð²:\n";
+	cout << arr << "\n";
 
-	std::cout << "\nÑóììà ïîëèíîìîâ:\n";
+	cout << "\nÐ¡ÑƒÐ¼Ð¼Ð° Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð²:\n";
 	int i1, i2;
 	do {
-		std::cout << "Ââåäèòå èíäåêñû äâóõ ïîëèíîìîâ äëÿ ñëîæåíèÿ (0.." << (n - 1) << "): ";
-		std::cin >> i1 >> i2;
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¸Ð½Ð´ÐµÐºÑÑ‹ Ð´Ð²ÑƒÑ… Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð² Ð´Ð»Ñ ÑÐ»Ð¾Ð¶ÐµÐ½Ð¸Ñ (0.." << (n - 1) << "): ";
+		cin >> i1 >> i2;
 		if (i1 < 0 || i1 >= n || i2 < 0 || i2 >= n) {
-			std::cerr << "Îøèáêà: èíäåêñû äîëæíû áûòü â äèàïàçîíå [0, " << (n - 1) << "]. Ïîâòîðèòå ââîä.\n";
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑÑ‹ Ð´Ð¾Ð»Ð¶Ð½Ñ‹ Ð±Ñ‹Ñ‚ÑŒ Ð² Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ðµ [0, " << (n - 1) << "]. ÐŸÐ¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚Ðµ Ð²Ð²Ð¾Ð´.\n";
 		}
 	} while (i1 < 0 || i1 >= n || i2 < 0 || i2 >= n);
 
 	arr[i1] += arr[i2];
-	std::cout << "Ïîñëå arr[" << i1 << "] += arr[" << i2 << "]:\n";
-	std::cout << "  arr[" << i1 << "] = " << arr[i1] << "\n";
+	cout << "ÐŸÐ¾ÑÐ»Ðµ arr[" << i1 << "] += arr[" << i2 << "]:\n";
+	cout << "  arr[" << i1 << "] = " << arr[i1] << "\n";
 
-	std::cout << "\nÐàçíîñòü ïîëèíîìîâ:\n";
+	cout << "\nÐ Ð°Ð·Ð½Ð¾ÑÑ‚ÑŒ Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð²:\n";
 	do {
-		std::cout << "Ââåäèòå èíäåêñû äâóõ ïîëèíîìîâ äëÿ âû÷èòàíèÿ (0.." << (n - 1) << "): ";
-		std::cin >> i1 >> i2;
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¸Ð½Ð´ÐµÐºÑÑ‹ Ð´Ð²ÑƒÑ… Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð² Ð´Ð»Ñ Ð²Ñ‹Ñ‡Ð¸Ñ‚Ð°Ð½Ð¸Ñ (0.." << (n - 1) << "): ";
+		cin >> i1 >> i2;
 		if (i1 < 0 || i1 >= n || i2 < 0 || i2 >= n) {
-			std::cerr << "Îøèáêà: èíäåêñû äîëæíû áûòü â äèàïàçîíå [0, " << (n - 1) << "]. Ïîâòîðèòå ââîä.\n";
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑÑ‹ Ð´Ð¾Ð»Ð¶Ð½Ñ‹ Ð±Ñ‹Ñ‚ÑŒ Ð² Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ðµ [0, " << (n - 1) << "]. ÐŸÐ¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚Ðµ Ð²Ð²Ð¾Ð´.\n";
 		}
 	} while (i1 < 0 || i1 >= n || i2 < 0 || i2 >= n);
 
 	arr[i1] -= arr[i2];
-	std::cout << "Ïîñëå arr[" << i1 << "] -= arr[" << i2 << "]:\n";
-	std::cout << "  arr[" << i1 << "] = " << arr[i1] << "\n";
+	cout << "ÐŸÐ¾ÑÐ»Ðµ arr[" << i1 << "] -= arr[" << i2 << "]:\n";
+	cout << "  arr[" << i1 << "] = " << arr[i1] << "\n";
 
-	std::cout << "\nÓìíîæåíèå ïîëèíîìà íà ÷èñëî:\n";
+	cout << "\nÐ£Ð¼Ð½Ð¾Ð¶ÐµÐ½Ð¸Ðµ Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð° Ð½Ð° Ñ‡Ð¸ÑÐ»Ð¾:\n";
 	int idx;
 	double scalar;
 	do {
-		std::cout << "Ââåäèòå èíäåêñ ïîëèíîìà äëÿ óìíîæåíèÿ (0.." << (n - 1) << "): ";
-		std::cin >> idx;
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¸Ð½Ð´ÐµÐºÑ Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð° Ð´Ð»Ñ ÑƒÐ¼Ð½Ð¾Ð¶ÐµÐ½Ð¸Ñ (0.." << (n - 1) << "): ";
+		cin >> idx;
 		if (idx < 0 || idx >= n) {
-			std::cerr << "Îøèáêà: èíäåêñ äîëæåí áûòü â äèàïàçîíå [0, " << (n - 1) << "]. Ïîâòîðèòå ââîä.\n";
+			cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð¸Ð½Ð´ÐµÐºÑ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ Ð² Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ðµ [0, " << (n - 1) << "]. ÐŸÐ¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚Ðµ Ð²Ð²Ð¾Ð´.\n";
 		}
 	} while (idx < 0 || idx >= n);
 
-	std::cout << "Ââåäèòå ÷èñëî, íà êîòîðîå óìíîæàåì arr[" << idx << "]: ";
-	std::cin >> scalar;
+	cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ñ‡Ð¸ÑÐ»Ð¾, Ð½Ð° ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ðµ ÑƒÐ¼Ð½Ð¾Ð¶Ð°ÐµÐ¼ arr[" << idx << "]: ";
+	cin >> scalar;
 	arr[idx] *= scalar;
-	std::cout << "Ïîñëå arr[" << idx << "] *= " << scalar << ":\n";
-	std::cout << "  arr[" << idx << "] = " << arr[idx] << "\n";
+	cout << "ÐŸÐ¾ÑÐ»Ðµ arr[" << idx << "] *= " << scalar << ":\n";
+	cout << "  arr[" << idx << "] = " << arr[idx] << "\n";
 
-	std::cout << "\nÈòîãîâûé ìàññèâ ïîëèíîìîâ:\n";
-	std::cout << arr << "\n";
+	cout << "\nÐ˜Ñ‚Ð¾Ð³Ð¾Ð²Ñ‹Ð¹ Ð¼Ð°ÑÑÐ¸Ð² Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð²:\n";
+	cout << arr << "\n";
 
 	double x;
-	std::cout << "\nÂâåäèòå x äëÿ ïðîâåðêè çíà÷åíèé ïîëèíîìîâ â òî÷êå: ";
-	std::cin >> x;
-	std::cout << "Çíà÷åíèÿ ïîëèíîìîâ â òî÷êå x = " << x << ":\n";
+	cout << "\nÐ’Ð²ÐµÐ´Ð¸Ñ‚Ðµ x Ð´Ð»Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ¸ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ð¹ Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð² Ð² Ñ‚Ð¾Ñ‡ÐºÐµ: ";
+	cin >> x;
+	cout << "Ð—Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ Ð¿Ð¾Ð»Ð¸Ð½Ð¾Ð¼Ð¾Ð² Ð² Ñ‚Ð¾Ñ‡ÐºÐµ x = " << x << ":\n";
 	for (int i = 0; i < n; i++) {
-		std::cout << "  P" << i << "(" << x << ") = " << arr[i].evaluate(x) << "\n";
+		cout << "  P" << i << "(" << x << ") = " << arr[i].evaluate(x) << "\n";
 	}
 
 	return 0;
